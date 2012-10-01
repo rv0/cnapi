@@ -2,37 +2,37 @@
 
 function cnapi_browse_block_is_visible_active_filters() {
   $request = cnapi_ui_get_active_request();
-  
+
   if (!isset($request['context'])) {
     return FALSE;
   }
-  
+
   return TRUE;
 }
 
 function cnapi_browse_block_cache_id_active_filters() {
   $request = cnapi_ui_get_active_request();
-  
+
   $request = cnapi_url_dp2p($request);
-  
+
   unset($request['query']['page']);
   unset($request['query']['pagelength']);
   unset($request['query']['sort']);
-  
+
   return array(cnapi_request_hash($request));
 }
 
 function cnapi_browse_block_view_active_filters() {
   $request = cnapi_ui_get_active_request();
-  
+
   $filter_options = array();
-  
+
   $filters = cnapi_ui_get_active_request_filters();
 
   if (!$filters) {
     return;
   }
-  
+
   foreach ($filters as $key => $key_filters) {
     foreach ($key_filters as $filter) {
       $filter_options[] = array(
@@ -47,23 +47,23 @@ function cnapi_browse_block_view_active_filters() {
 
   $block['subject'] = 'Actieve filters';
   $block['content'] = theme('cnapi_browse_filter_options', array('options' => $filter_options));
-  
+
   return $block;
 }
 
 function cnapi_browse_block_view_navigation() {
-  
+
   $report = cnapi_browse_get_event_report(array(), FALSE, array('headings'), FALSE, FALSE);
 
   // if we can't fetch the report, we generate the navigation based on the heading tree in our database
   if (!isset($report['headings']) || empty($report['headings'])) {
     $items = array();
-    
+
     $headings = cnapi_get_headings_tree();
-    
+
     foreach ($headings as $heading) {
       $url = array('context' => 'event', 'query' => array('heading' => $heading['hid']));
-      
+
       $item = array(
         'id' => $heading['hid'],
         'name' => $heading['name'],
@@ -71,20 +71,20 @@ function cnapi_browse_block_view_navigation() {
         'total' => -1,
         'is_heading_group' => TRUE,
       );
-      
+
       $child_items = array();
-    
+
       foreach ($heading['children'] as $child_heading) {
         $url = array('context' => 'event', 'query' => array('heading' => $child_heading['hid']));
-        
+
         if ($child_heading['hid'] == 64) {
           $url = array('context' => 'movie');
         }
-        
+
         if ($child_heading['hid'] == 98) {
           $url = array('context' => 'movie_children');
         }
-        
+
         $child_items[] = array(
           'id' => $child_heading['hid'],
           'name' => $child_heading['name'],
@@ -93,21 +93,21 @@ function cnapi_browse_block_view_navigation() {
           'is_heading_group' => FALSE,
         );
       }
-    
+
       if (!empty($child_items)) {
         $item['children'] = $child_items;
       }
-      
+
       $items[] = $item;
     }
   }
-  
+
   else {
     // If we could fetch the report, we build our navigation based on the report.
     $items = array();
     foreach ($report['headings'] as $report_item) {
       $link_context = isset($report_item['link']['context']) ? $report_item['link']['context'] : 'event';
-    
+
       $item = array(
         'id' => $report_item['id'],
         'name' => $report_item['name'],
@@ -115,10 +115,10 @@ function cnapi_browse_block_view_navigation() {
         'total' => $report_item['total'],
         'is_heading_group' => cnapi_output_type_has_heading_groups(),
       );
-    
+
       if (cnapi_output_type_has_heading_groups() && isset($report_item['children'])) {
         $child_items = array();
-    
+
         foreach ($report_item['children'] as $child_report_item) {
           $link_context = isset($child_report_item['link']['context']) ? $child_report_item['link']['context'] : 'event';
           $child_items[] = array(
@@ -129,12 +129,12 @@ function cnapi_browse_block_view_navigation() {
             'is_heading_group' => FALSE,
           );
         }
-    
+
         if (!empty($child_items)) {
           $item['children'] = $child_items;
         }
       }
-    
+
       $items[] = $item;
     }
   }
@@ -250,7 +250,7 @@ function cnapi_browse_block_is_visible_filters() {
   elseif (!in_array($context['type'], array('event', 'production'))) {
     return FALSE;
   }
-  
+
   return TRUE;
 }
 
@@ -264,13 +264,13 @@ function cnapi_browse_block_cache_id_filters_when() {
 
 function cnapi_browse_block_cache_id_filters() {
   $request = cnapi_ui_get_active_request();
-  
+
   $request = cnapi_url_dp2p($request);
-  
+
   unset($request['query']['page']);
   unset($request['query']['pagelength']);
   unset($request['query']['sort']);
-  
+
   return array(cnapi_request_hash($request));
 }
 
@@ -288,11 +288,11 @@ function cnapi_browse_block_view_filters_when() {
 
 function cnapi_browse_block_view_filters($type, $title) {
   $request = cnapi_ui_get_active_request();
-  
+
   $context = cnapi_ui_contexts('id', $request['context']);
 
   $request_p = cnapi_url_dp2p($request);
-  
+
   $result = cnapi_get($request_p);
   if (!isset($result['total']) || $result['total'] == 0) {
     return;
@@ -315,7 +315,7 @@ function cnapi_browse_block_view_filters($type, $title) {
     if ($context['type'] == 'event') {
       $render = cnapi_browse_filter_what_event($report);
     }
-    
+
     if ($context['type'] == 'production') {
       $render = cnapi_browse_filter_what_production($report);
     }
@@ -472,29 +472,29 @@ function cnapi_browse_filter_what_event($report) {
 
 function cnapi_browse_filter_what_production($report) {
   $render['filter_form'] = drupal_get_form('cnapi_browse_filter_what_production_form', $report);
-  
+
   return $render;
 }
 
 function cnapi_browse_filter_what_production_form($form, &$form_state, $report) {
   $form = array();
-  
+
   $request = cnapi_ui_get_active_request();
 
   $context = cnapi_ui_contexts('id', $request['context']);
-  
+
   $query = $context['query'];
-  
+
   $options = array();
-  
+
   $report = cnapi_get_report('production', $query);
   $productions = $report['production'];
   foreach ($productions as $cdbid => $production) {
     $options[$cdbid] = $production['name'];
   }
-  
+
   asort($options);
-  
+
   $options = array(CNAPI_OPTION_NONE => 'Selecteer een productie') + $options;
 
   $form['cdbid'] = array(
@@ -504,19 +504,19 @@ function cnapi_browse_filter_what_production_form($form, &$form_state, $report) 
     '#default_value' => isset($request['query']['cdbid']) ? $request['query']['cdbid'] : '',
     '#attributes' => array('class' => array('autosubmit')),
   );
-  
+
   $form['query'] = array(
     '#type' => 'textfield',
     '#title' => 'Wat',
     '#description' => 'Zoek op titel/trefwoord',
     '#default_value' => isset($request['query']['query']) ? $request['query']['query'] : '',
   );
-  
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Filter',
   );
-  
+
   return $form;
 }
 
@@ -591,23 +591,23 @@ function cnapi_browse_filter_where($report, $type) {
   }
   elseif (isset($request['query']['zip']) || isset($request['query']['city']) || isset($request['query']['cityid'])) {
     $parts = array();
-    
+
     if (isset($request['query']['zip'])) {
       $parts = explode('!', $request['query']['zip']);
-    
+
       $id = $parts[0];
       $name = $parts[0];
-    
+
       if ($report_geo) {
         $total = NULL;
       }
     }
     elseif (isset($request['query']['city'])) {
       $parts = explode('!', $request['query']['city']);
-    
+
       $id = $parts[0];
       $name = $parts[0];
-    
+
       if ($report_geo) {
         $total = NULL;
       }
@@ -615,25 +615,25 @@ function cnapi_browse_filter_where($report, $type) {
     elseif (isset($request['query']['cityid'])) {
       // take radius search into account!
       $parts = explode('!', $request['query']['cityid']);
-    
+
       $id = $parts[0];
-    
+
       $cities = cnapi_get_cities();
       if (isset($cities[$id])) {
         $name = $cities[$id]['name'];
       }
-    
+
       $region_municipality = db_query("SELECT pid FROM {cnapi_location_hierarchy} WHERE lid = :lid AND pid IN (SELECT lid FROM {cnapi_location} WHERE did = :did)", array(':lid' => $id, ':did' => CNAPI_LOCATIONS_DIMENSION_MUNICIPALITY))->fetchField();
       $region_tourist = db_query("SELECT pid FROM {cnapi_location_hierarchy} WHERE lid = :lid AND pid IN (SELECT lid FROM {cnapi_location} WHERE did = :did)", array(':lid' => $id, ':did' => CNAPI_LOCATIONS_DIMENSION_TOURIST))->fetchField();
       $province = db_query("SELECT pid FROM {cnapi_location_hierarchy} WHERE lid = :lid AND pid IN (SELECT lid FROM {cnapi_location} WHERE did = :did)", array(':lid' => $region_tourist, ':did' => CNAPI_LOCATIONS_DIMENSION_PROVINCE))->fetchField();
-    
+
       // @todo dimension depends on key?
       // We check if the city appears in the report because in case of a radius search, the city might not be in the report.
       if ($report_geo && isset($report_geo[$province]['children'][$region_tourist]['children'][$region_municipality]['children'][$id]['total'])) {
         $total = $report_geo[$province]['children'][$region_tourist]['children'][$region_municipality]['children'][$id]['total'];
       }
     }
-    
+
     if (isset($parts[1])) {
       $name .= ' (+ ' . $parts[1] . ')';
     }

@@ -83,6 +83,14 @@ function cnapi_location_parse($input = '') {
 }
 
 function cnapi_location_autocomplete($only_zip = FALSE, $input = '') {
+  cnapi_get_location_autocomplete($only_zip, $only_zip, $input);
+}
+
+/**
+ * Get the autocomplete results for a location search.
+ */
+function cnapi_get_location_autocomplete($only_cities = FALSE, $return_zip = FALSE, $input = '') {
+
   $matches = array();
 
   if ($input) {
@@ -95,17 +103,17 @@ function cnapi_location_autocomplete($only_zip = FALSE, $input = '') {
     $locations = db_query_range($sql, 0, 10, array(':did' => CNAPI_LOCATIONS_DIMENSION_MUNICIPALITY, ':start' => strtolower($input) . '%', ':input' => strtolower($input)))->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($locations as $location) {
-      if ($only_zip && $location['type'] != 'city') {
+      if ($only_cities && $location['type'] != 'city') {
         continue;
       }
-      
+
       if ($location['type'] == 'city') {
         $text = $location['zip'] . ' ' . $location['name'];
       }
       else {
         $text = $location['name'] . ' (Regio)';
       }
-      if ($only_zip) {
+      if ($return_zip) {
         $matches[$location['zip']] = $text;
       }
       else {
@@ -115,11 +123,12 @@ function cnapi_location_autocomplete($only_zip = FALSE, $input = '') {
   }
 
   drupal_json_output($matches);
+
 }
 
 function cnapi_actor_autocomplete($input = '') {
   $matches = array();
-  
+
   if ($input) {
     $sql = "SELECT CONCAT(name, ' - ', zip, ' ', city) AS full FROM {cnapi_actor} WHERE CONCAT(LOWER(name), ' - ', zip, ' ', LOWER(city)) LIKE :input";
     $actors = db_query_range($sql, 0, 10, array(':input' => '%' . db_like(strtolower($input)) . '%'))->fetchAll(PDO::FETCH_ASSOC);
@@ -127,7 +136,7 @@ function cnapi_actor_autocomplete($input = '') {
       $matches[$actor['full']] = $actor['full'];
     }
   }
-  
+
   drupal_json_output($matches);
 }
 
@@ -214,7 +223,7 @@ function cnapi_get_cityid($zip, $name) {
   }
 
   $name = strtolower($name);
-  
+
   if (isset($mapping[$zip][$name])) {
     return $mapping[$zip][$name];
   }
@@ -259,11 +268,11 @@ function cnapi_get_locations($did = CNAPI_LOCATIONS_DIMENSION_ADMINISTRATIVE, $i
 
 function cnapi_get_locations_tree($did = CNAPI_LOCATIONS_DIMENSION_ADMINISTRATIVE, $include_cities = TRUE, $tree_type = 'tree') {
 	$cid = sprintf('cnapi_locations_tree:%d:%d:%s', $did, $include_cities ? 1 : 0, $tree_type);
-	
+
 	if ($cache = cache_get($cid)) {
 		return $cache->data;
 	}
-	
+
   $tree = _cnapi_get_tree(__FUNCTION__, $tree_type, 'cnapi_get_locations', array($did, $include_cities));
 
 	cache_set($cid, $tree);

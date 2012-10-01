@@ -137,7 +137,7 @@ function cnapi_ui_actor_load($cdbid) {
   if ($cdbid == 'untitled') {
     return FALSE;
   }
-  
+
   return cnapi_get_actor($cdbid);
 }
 
@@ -148,7 +148,7 @@ function cnapi_ui_event_load($cdbid) {
   if ($cdbid == 'untitled') {
     return FALSE;
   }
-  
+
   return cnapi_get_event($cdbid);
 }
 
@@ -159,7 +159,7 @@ function cnapi_ui_production_load($cdbid) {
   if ($cdbid == 'untitled') {
     return FALSE;
   }
-  
+
   return cnapi_get_production($cdbid);
 }
 
@@ -299,7 +299,7 @@ function cnapi_ui_contexts($key = 'id', $id = NULL) {
 
 function cnapi_ui_get_active_request_filters() {
   $request = cnapi_ui_get_active_request();
-  
+
   return cnapi_ui_get_request_filters($request);
 }
 
@@ -331,7 +331,7 @@ function cnapi_ui_get_request_filters($request) {
     if (count($dates) > 0) {
       $filter['description'] = format_date($dates[0], 'custom', 'd/m/Y');
     }
-    
+
     // ... and last ...
     if (count($dates) > 1) {
       $filter['description'] .= ' - ' . format_date($dates[count($dates) - 1], 'custom', 'd/m/Y');
@@ -383,10 +383,10 @@ function cnapi_ui_get_request_filters($request) {
       else {
         unset($tmp['url_remove']['query'][$key]);
       }
-      
+
       // By default the value equals the value...
       $tmp['value'] = $value;
-      
+
       // ... and the description also equals the value.
       $tmp['description'] = $tmp['value'];
 
@@ -441,7 +441,7 @@ function cnapi_ui_get_request_filters($request) {
         case 'heading':
           $headings = cnapi_get_headings();
           $tmp['description'] = isset($headings[$value]['name']) ? $headings[$value]['name'] : '';
-          
+
           // For the festivals the name of the heading is just Music and the keyword "festival" is in the parent. But since the description will be shown without the parent, we rewrite the heading to the full name (including festival) so it makes sense in that context.
           $replace = array(
             67 => 'Muziekfestivals',

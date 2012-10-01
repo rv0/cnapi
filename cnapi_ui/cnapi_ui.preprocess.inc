@@ -145,6 +145,12 @@ function template_preprocess_cnapi_ui_event_mini_summary(&$variables) {
   $thumbnail_img = theme('image', array('path' => $thumbnail_url, 'alt' => $variables['title']));
   $object_url['options']['html'] = TRUE;
   $variables['thumbnail'] = l($thumbnail_img, $object_url['path'], $object_url['options']);
+
+  if (user_is_anonymous()) {
+    $variables['like_link'] = l('Vind ik leuk', 'authenticated', array('attributes' => array('class' => array('disabled')))) . theme('culturefeed_ui_connect_hover');
+    $variables['remove_link'] = l('Vind ik niet leuk', 'authenticated', array('attributes' => array('class' => array('disabled')))) . theme('culturefeed_ui_connect_hover');
+  }
+
 }
 
 /**
@@ -507,16 +513,17 @@ function _template_preprocess_cnapi_ui_object(&$variables, $type) {
       $request_actor = array('actor' => $organiser['cdbid'], 'title' => $variables['organiser']['title']);
       $variables['organiser']['link'] = cnapi_url_dp2dul($variables['organiser']['title'], $request_actor);
     }
-  }
 
-	// location is organiser
-	$variables['location_is_organiser'] = FALSE;
-	if (isset($organiser['cdbid']) && isset($location['actor']['cdbid'])) {
-		$variables['location_is_organiser'] = ($organiser['cdbid'] == $location['actor']['cdbid']);
-	}
-	elseif ($type != 'actor') {
-	  $variables['location_is_organiser'] = ($organiser['title'] == $location['actor']['title']);
-	}
+  	// location is organiser
+  	$variables['location_is_organiser'] = FALSE;
+  	if (isset($organiser['cdbid']) && isset($location['actor']['cdbid'])) {
+  		$variables['location_is_organiser'] = ($organiser['cdbid'] == $location['actor']['cdbid']);
+  	}
+  	elseif ($type != 'actor') {
+  	  $variables['location_is_organiser'] = ($organiser['title'] == $location['actor']['title']);
+  	}
+
+  }
 
   // contact
   $variables['contact'] = array();

@@ -82,6 +82,13 @@ function cnapi_menu() {
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
+  $items['cnapi/autocomplete/location/cities'] = array(
+    'title' => 'Locations autocomplete',
+    'page callback' => 'cnapi_get_location_autocomplete',
+    'page arguments' => array(TRUE, FALSE),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
   $items['cnapi/autocomplete/actor'] = array(
     'title' => 'Actors autocomplete',
     'page callback' => 'cnapi_actor_autocomplete',

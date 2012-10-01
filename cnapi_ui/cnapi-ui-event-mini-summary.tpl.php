@@ -23,6 +23,11 @@
     <?php if ($when) : ?>
       <div class="when"><?php print $when ?></div>
     <?php endif; ?>
+    <div class="actions">
+      <?php if ($like_link) : ?><div class="like"><?php print $like_link ?></div><?php endif; ?><?php if ($remove_link) : ?><div class="remove"><?php print $remove_link ?></div><?php endif; ?>
+    </div>
+
+    <div class="clearfix"></div>
     
   </div>
 

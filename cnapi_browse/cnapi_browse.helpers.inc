@@ -193,7 +193,7 @@ function cnapi_browse_process_form_values(&$request, $values) {
       $request['query'][$key] = $value;
     }
   }
-  
+
   // cdbid
   if (isset($values['cdbid']) && $values['cdbid'] != CNAPI_OPTION_NONE) {
     $context = cnapi_ui_contexts('id', $request['context']);
