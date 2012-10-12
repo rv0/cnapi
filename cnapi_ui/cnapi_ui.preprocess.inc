@@ -869,3 +869,15 @@ function cnapi_ui_preprocess_html(&$variables) {
   $variables['head_title_array'] = $head_title;
   $variables['head_title'] = implode(' | ', $head_title);
 }
+
+
+/**
+ * Implement hook_preprocess_breadcrumb().
+ */
+function cnapi_ui_preprocess_breadcrumb(&$variables) {
+  if (!isset($variables['breadcrumb'])) {
+    $variables['breadcrumb'] = array();
+  }
+  if (arg(0) != 'agenda' || (arg(1) != 'l' && arg(1) != 'search'))
+  $variables['breadcrumb'][] = '<span>' . drupal_get_title() . '</span>';
+}

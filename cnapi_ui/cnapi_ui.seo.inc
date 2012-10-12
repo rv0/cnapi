@@ -19,7 +19,7 @@ function cnapi_ui_preprocess_link(&$variables) {
     $context = cnapi_ui_contexts('id', $request['context']);
 
     // In case the url has more parameters than page and heading, we add rel=nofollow. We only want search engines to index lists by heading.
-    if (count(array_diff(array_keys($request['query']), array('page', 'heading'))) > 0) {
+    if (count(array_diff(array_keys($request['query']), array('page', 'heading', 'regio', 'cityid'))) > 0) {
       $variables['options']['attributes']['rel'] = 'nofollow';
     }
     elseif ($context['type'] == 'event' && !isset($request['query']['heading'])) {
@@ -79,7 +79,7 @@ function cnapi_ui_set_canonical_and_noindex() {
 
     // If we're on an event list, we look at headings
     if ($context['type'] == 'event') {
-      if (count(array_diff(array_keys($request['query']), array('page', 'heading', 'regio'))) > 0) {
+      if (count(array_diff(array_keys($request['query']), array('page', 'heading', 'regio', 'cityid'))) > 0) {
         $noindex = TRUE;
       }
 

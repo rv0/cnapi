@@ -14,8 +14,108 @@ function cnapi_ui_page_detail($object) {
  * Menu callback handler for the list (context) pages (actor, event, production).
  */
 function cnapi_ui_page_list() {
+
   // Getting the current request as a Drupal request object.
   $request_dp = cnapi_ui_get_active_request();
+
+  $breadcrumb = array();
+  $breadcrumb[] = l(t('Home'), '<front>');
+
+  $breadcrumb_array = array();
+
+  if (isset($request_dp['query']['heading'])) {
+
+    // Check if current heading has parent
+    $parent = db_query("SELECT hid, name, pid FROM {cnapi_heading} ch WHERE ch.pid <> 0 AND ch.pid NOT IN (SELECT hid FROM {cnapi_heading} ch WHERE ch.pid = 0) AND ch.hid = :hid", array(':hid' => $request_dp['query']['heading']))->fetchObject();
+    if ($parent) {
+      $parent_heading = db_query("SELECT hid, name FROM {cnapi_heading} ch WHERE ch.hid = :hid", array(':hid' => $parent->pid))->fetchObject();
+      $breadcrumb_array[] = array(
+        'title' => $parent_heading->name,
+        'url' => l($parent_heading->name, 'agenda/search', array('query' => array('heading' => $parent_heading->hid))),
+      );
+    }
+
+    // Set current heading
+    $heading = db_query("SELECT hid, name FROM {cnapi_heading} ch WHERE ch.hid = :hid", array(':hid' => $request_dp['query']['heading']))->fetchObject();
+    $breadcrumb_array[] = array(
+      'title' => $heading->name,
+      'url' => l($heading->name, 'agenda/search', array('query' => array('heading' => $heading->hid))),
+    );
+  }
+
+  // create heading array to merge if there is no active heading
+  $heading_array = array();
+  if (isset($heading)) {
+    $heading_array = array('heading' => $heading->hid);
+  }
+
+  // Set current regio
+  if (isset($_GET['regio']) && is_numeric($_GET['regio'])) {
+    $regio  = db_query("SELECT name FROM {cnapi_location} WHERE lid = :lid", array(':lid' => $_GET['regio']))->fetchField();
+    if ($regio) {
+      $breadcrumb_array[] = array(
+        'title' => $regio,
+        'url' => l($regio, 'agenda/search', array('query' => array_merge($heading_array, array('regio' => $_GET['regio'])))),
+      );
+    }
+  }
+
+  // Set current city
+  if (isset($_GET['cityid'])) {
+
+    $regio = db_query("SELECT clh.pid, cl.name FROM {cnapi_location_hierarchy} clh LEFT JOIN {cnapi_location} cl ON cl.lid = clh.pid WHERE clh.lid = :lid AND clh.pid IN (SELECT lid FROM {cnapi_location} WHERE did = :did)", array(':lid' => $_GET['cityid'], ':did' => CNAPI_LOCATIONS_DIMENSION_MUNICIPALITY))->fetchObject();
+    if ($regio) {
+      $breadcrumb_array[] = array(
+        'title' => $regio->name,
+        'url' => l($regio->name, 'agenda/search', array('query' => array_merge($heading_array, array('regio' => $regio->pid)))),
+      );
+    }
+    $city  = db_query("SELECT name FROM {cnapi_location} WHERE lid = :lid", array(':lid' => $_GET['cityid']))->fetchField();
+    if ($city) {
+
+      // remove ' (region)' from city
+      $city_name = explode(' (', $city);
+      $city = $city_name[0];
+
+      $city = $regio && $city == $regio->name ? $city . ' centrum' : $city;
+      $breadcrumb_array[] = array(
+        'title' => $city,
+        'url' => l($city, 'agenda/search', array('query' => array_merge($heading_array, array('cityid' => $_GET['cityid'])))),
+      );
+    }
+  }
+
+  // Pop last element to set as page title instead of link
+  $breadcrumb_title = array_pop($breadcrumb_array);
+  foreach($breadcrumb_array as $value) {
+    $breadcrumb[] = $value['url'];
+  }
+
+  $breadcrumb[] = $breadcrumb_title['title'];
+
+
+
+
+  // Set breadcrumbs when there is no city or regian facet
+//   if (!isset($_GET['regio']) && !isset($_GET['cityid'])) {
+//     if (isset($request_dp['query']['heading'])) {
+//       $heading = db_query("SELECT hid, name, pid FROM {cnapi_heading} ch WHERE ch.pid <> 0 AND ch.pid NOT IN (SELECT hid FROM {cnapi_heading} ch WHERE ch.pid = 0) AND ch.hid = :hid", array(':hid' => $request_dp['query']['heading']))->fetchAllAssoc('hid');
+//       if ($heading) {
+//         $parent = db_query("SELECT hid, name FROM {cnapi_heading} ch WHERE ch.hid = :hid", array(':hid' => reset($heading)->pid))->fetchAllAssoc('hid');
+//         $parent_url = cnapi_url_dp2dua(array('context' => 'event', 'query' => array('heading' => reset($parent)->hid)));
+//         $breadcrumb[] = l(reset($parent)->name, $parent_url['path'], array('query' => array('heading' => reset($parent)->hid)));
+//         $breadcrumb[] = reset($heading)->name;
+//       }
+//       else {
+//         $parent = db_query("SELECT hid, name FROM {cnapi_heading} ch WHERE ch.hid = :hid", array(':hid' => $request_dp['query']['heading']))->fetchAllAssoc('hid');
+//         $breadcrumb[] = reset($parent)->name;
+//       }
+//     }
+//   }
+
+  drupal_set_breadcrumb($breadcrumb);
+
+
 
   // There's a specific issue with requests with headings that are invalid.
   if (isset($request_dp['query']['heading'])) {
