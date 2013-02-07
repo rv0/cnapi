@@ -17,22 +17,22 @@ function cnapi_ui_page_list() {
 
   // Getting the current request as a Drupal request object.
   $request_dp = cnapi_ui_get_active_request();
+  $breadcrumb = drupal_get_breadcrumb();
 
-  $breadcrumb = array();
-  $breadcrumb[] = l(t('Home'), '<front>');
-
-  $breadcrumb_array = array();
+  $breadcrumb_array[] = array(
+    'title' => drupal_get_title(),
+    'url' => l(drupal_get_title(), current_path()),
+  );
 
   if (isset($request_dp['query']['heading'])) {
 
     // Check if current heading has parent
-    $parent = db_query("SELECT hid, name, pid FROM {cnapi_heading} ch WHERE ch.pid <> 0 AND ch.pid NOT IN (SELECT hid FROM {cnapi_heading} ch WHERE ch.pid = 0) AND ch.hid = :hid", array(':hid' => $request_dp['query']['heading']))->fetchObject();
-    if ($parent) {
-      $parent_heading = db_query("SELECT hid, name FROM {cnapi_heading} ch WHERE ch.hid = :hid", array(':hid' => $parent->pid))->fetchObject();
+    $parent = db_query("SELECT hid, name, pid FROM {cnapi_heading} ch WHERE ch.hid IN (SELECT ch.pid FROM {cnapi_heading} ch WHERE ch.hid = :hid)", array(':hid' => $request_dp['query']['heading']))->fetchObject();
+    if (!empty($parent)) {
       $breadcrumb_array[] = array(
-        'title' => $parent_heading->name,
-        'url' => l($parent_heading->name, 'agenda/search', array('query' => array('heading' => $parent_heading->hid))),
-      );
+        'title' => $parent->name,
+        'url' => l($parent->name, 'agenda/search', array('query' => array('heading' => $parent->hid)))
+      );      
     }
 
     // Set current heading
@@ -93,9 +93,6 @@ function cnapi_ui_page_list() {
 
   $breadcrumb[] = $breadcrumb_title['title'];
 
-
-
-
   // Set breadcrumbs when there is no city or regian facet
 //   if (!isset($_GET['regio']) && !isset($_GET['cityid'])) {
 //     if (isset($request_dp['query']['heading'])) {
@@ -114,8 +111,6 @@ function cnapi_ui_page_list() {
 //   }
 
   drupal_set_breadcrumb($breadcrumb);
-
-
 
   // There's a specific issue with requests with headings that are invalid.
   if (isset($request_dp['query']['heading'])) {
